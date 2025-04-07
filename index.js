@@ -32,6 +32,8 @@ app.get('/status/:userId', async (req, res) => {
             return res.status(404).json({ error: 'User not found in the guild' });
         }
 
+        console.log(member.presence)
+
         res.json({
             username: user.username,
             avatar: user.displayAvatarURL(),
@@ -44,9 +46,9 @@ app.get('/status/:userId', async (req, res) => {
                 details: activity.details,
                 timestamps: activity.timestamps,
                 assets: activity.assets,
-                assets_image: activity.assets &&
-                    activity.type !== 2 ? (activity.assets.largeImage ? `https://cdn.discordapp.com/app-assets/${activity.applicationId}/${activity.assets.largeImage}.png` : null)
-                    : (activity.assets.largeImage ? `https://i.scdn.co/image/${activity.assets.largeImage.replace("spotify:", "")}` : null),
+                assets_image: activity.type === 4 ? null : activity.assets &&
+                activity.type !== 2 ? (activity.assets.largeImage ? `https://cdn.discordapp.com/app-assets/${activity.applicationId}/${activity.assets.largeImage}.png` : null)
+                : (activity.assets.largeImage ? `https://i.scdn.co/image/${activity.assets.largeImage.replace("spotify:", "")}` : null),
             })) : null,
             status: member.presence ? member.presence.status : "offline",
         });
