@@ -1,7 +1,7 @@
 const { Client, GatewayIntentBits } = require('discord.js');
 const express = require('express');
 const app = express();
-const port = 3001;
+const port = 80;
 
 require('dotenv').config();
 
@@ -32,7 +32,7 @@ app.get('/status/:userId', async (req, res) => {
             return res.status(404).json({ error: 'User not found in the guild' });
         }
 
-        console.log(member.presence)
+        console.log(JSON.stringify(member.presence))
 
         res.json({
             username: user.username,
@@ -46,9 +46,23 @@ app.get('/status/:userId', async (req, res) => {
                 details: activity.details,
                 timestamps: activity.timestamps,
                 assets: activity.assets,
-                assets_image: activity.type === 4 ? null : activity.assets &&
-                activity.type !== 2 ? (activity.assets.largeImage ? `https://cdn.discordapp.com/app-assets/${activity.applicationId}/${activity.assets.largeImage}.png` : null)
-                : (activity.assets.largeImage ? `https://i.scdn.co/image/${activity.assets.largeImage.replace("spotify:", "")}` : null),
+                assets_image: (() => {
+                    if (!activity.assets || !activity.assets.largeImage) return null;
+                
+                    const image = activity.assets.largeImage;
+
+                    if (image.startsWith('mp:external/')) {
+                        const encodedUrl = image.replace('mp:external/', '');
+                        const cleanedUrl = decodeURIComponent(encodedUrl).replace(/^.*?\/https/, 'https://').replace("https:///", "https://");
+                        return cleanedUrl;
+                    }
+
+                    if (image.startsWith('spotify:')) {
+                        return `https://i.scdn.co/image/${image.replace('spotify:', '')}`;
+                    }
+                    
+                    return `https://cdn.discordapp.com/app-assets/${activity.applicationId}/${image}.png`;
+                })(),
             })) : null,
             status: member.presence ? member.presence.status : "offline",
         });
